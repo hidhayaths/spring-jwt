@@ -1,0 +1,9 @@
+version: '3.0'
+services:
+  db:
+    image: mysql:8.0
+    container_name: spring_jwt_mysql
+    environment:
+      - "MYSQL_ROOT_PASSWORD=s3cr3t"
+    ports:
+      - "3300:3306"
