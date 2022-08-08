@@ -8,15 +8,11 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -28,9 +24,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class JWTUtil {
+public class JWTUtils {
 
-    private static JWTUtil instance;
+    private static JWTUtils instance;
 
     private final String secret="s3cr3t";
 
@@ -52,13 +48,13 @@ public class JWTUtil {
 
     public static final String TOKEN_PREFIX = "Bearer ";
 
-    private JWTUtil(){
+    private JWTUtils(){
 
     }
 
-    public static synchronized JWTUtil getInstance(){
+    public static synchronized JWTUtils getInstance(){
             if (instance == null)
-                instance = new JWTUtil();
+                instance = new JWTUtils();
         return instance;
     }
 

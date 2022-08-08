@@ -4,7 +4,8 @@ import app.dtos.*;
 import app.models.AppRole;
 import app.models.AppUser;
 import app.services.AppUserService;
-import app.utils.JWTUtil;
+import app.utils.JWTUtils;
+import app.utils.UserUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,9 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -58,22 +56,22 @@ public class UserController {
 
     @PostMapping("/token/refresh")
     public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String authHeader = request.getHeader(JWTUtil.HEADER_NAME);
+        String authHeader = request.getHeader(JWTUtils.HEADER_NAME);
 
         if(authHeader.isBlank())
             throw new RuntimeException("Authorization Header is missing");
 
-        if(!authHeader.startsWith(JWTUtil.TOKEN_PREFIX))
+        if(!authHeader.startsWith(JWTUtils.TOKEN_PREFIX))
             throw new RuntimeException("Authorization token is not Bearer token");
 
-        JWTUtil jwtUtil = JWTUtil.getInstance();
+        JWTUtils jwtUtils = JWTUtils.getInstance();
 
-        String authToken = authHeader.substring(JWTUtil.TOKEN_PREFIX.length());
+        String authToken = authHeader.substring(JWTUtils.TOKEN_PREFIX.length());
 
-        if(jwtUtil.isTokenExpired(authToken))
+        if(jwtUtils.isTokenExpired(authToken))
             throw new RuntimeException("refresh token is already expired");
 
-        String userEmail = jwtUtil.getUsernameFromToken(authToken);
+        String userEmail = jwtUtils.getUsernameFromToken(authToken);
 
         AppUser appUser = userService.findUser(userEmail).orElseThrow(
                 ()-> new RuntimeException("user '"+userEmail+"' does not exists, invalid user")
@@ -81,7 +79,7 @@ public class UserController {
 
         List<GrantedAuthority> roles = appUser.getRoles().stream().map(AppRole::getName).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
-        TokenResponse tokenResponse = jwtUtil.getToken(TokenType.ACCESS_TOKEN, appUser.getEmail(), roles);
+        TokenResponse tokenResponse = jwtUtils.getToken(TokenType.ACCESS_TOKEN, appUser.getEmail(), roles);
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpStatus.OK.value());
@@ -92,13 +90,13 @@ public class UserController {
 
     @GetMapping("/welcome")
     public ResponseEntity<CommonResponse> greetUser(){
-        String loggedInUser = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         return ResponseEntity.ok(
                 new CommonResponse(
                         HttpStatus.OK,
                         "success",
                         LocalDateTime.now().toString(),
-                        "welcome "+ loggedInUser
+                        "welcome "+ UserUtils.loggedInUsername()
                 )
         );
     }
